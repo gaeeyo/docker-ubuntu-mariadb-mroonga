@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail +x
+set -eo pipefail
 shopt -s nullglob
 
 # logging functions
@@ -52,14 +52,11 @@ _is_sourced() {
 # process initializer files, based on file extensions
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
-	echo "@ mysql=( docker_process_sql )"
 	mysql=( docker_process_sql )
 
 	echo
-	echo "@ local f"
 	local f
 	for f; do
-		echo '@ case "$f" in'
 		case "$f" in
 			*.sh)
 				# https://github.com/docker-library/postgres/issues/450#issuecomment-393167936
@@ -209,13 +206,11 @@ docker_setup_db() {
 	# Load timezone info into database
 	if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
 		# sed is for https://bugs.mysql.com/bug.php?id=20545
-		echo 'mysql_tzinfo_to_sql /usr/share/zoneinfo'
 		mysql_tzinfo_to_sql /usr/share/zoneinfo \
 			| sed 's/Local time zone must be set--see zic manual page/FCTY/' \
 			| docker_process_sql --dont-use-mysql-root-password --database=mysql
 			# tell docker_process_sql to not use MYSQL_ROOT_PASSWORD since it is not set yet
 	fi
-	echo '@ Generate random root password'
 	# Generate random root password
 	if [ -n "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 		export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
@@ -306,49 +301,35 @@ _main() {
 	if [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MySQL Server ${MARIADB_VERSION} started."
 
-    echo mysql_check_config "$@"
 		mysql_check_config "$@"
 		# Load various environment variables
-		echo docker_setup_env "$@"
 		docker_setup_env "$@"
-		echo docker_create_db_directories
 		docker_create_db_directories
 
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = "0" ]; then
-			echo mysql_note "Switching to dedicated user 'mysql'"
 			mysql_note "Switching to dedicated user 'mysql'"
 			exec gosu mysql "$BASH_SOURCE" "$@"
 		fi
 
 		# there's no database, so it needs to be initialized
 		if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
-			echo docker_verify_minimum_env
 			docker_verify_minimum_env
 
 			# check dir permissions to reduce likelihood of half-initialized database
 			ls /docker-entrypoint-initdb.d/ > /dev/null
 
-			echo docker_init_database_dir "$@"
 			docker_init_database_dir "$@"
 
-			echo mysql_note "Starting temporary server"
 			mysql_note "Starting temporary server"
-			echo docker_temp_server_start "$@"
 			docker_temp_server_start "$@"
-			echo mysql_note "Temporary server started."
 			mysql_note "Temporary server started."
 
-			echo docker_setup_db
 			docker_setup_db
-			echo docker_process_init_files /docker-entrypoint-initdb.d/*
 			docker_process_init_files /docker-entrypoint-initdb.d/*
 
-			echo mysql_note "Stopping temporary server"
 			mysql_note "Stopping temporary server"
-			echo docker_temp_server_stop
 			docker_temp_server_stop
-			echo mysql_note "Temporary server stopped"
 			mysql_note "Temporary server stopped"
 
 			echo
@@ -356,9 +337,7 @@ _main() {
 			echo
 		fi
 	fi
-	echo exec "$@"
 	exec "$@"
-	echo "done"
 }
 
 # If we are sourced from elsewhere, don't perform any further actions

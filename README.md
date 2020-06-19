@@ -13,9 +13,6 @@ mariadb が公開している mariadb/server の docker-entrypoint.sh をその�
 ```
 set -ex; docker build -t mroonga .; docker run --rm -it -eMYSQL_ALLOW_EMPTY_PASSWORD=1 mroonga bash
 ```
-```
-docker exec -it set -ex; docker build -t mroonga .; docker run --rm -it -eMYSQL_ALLOW_EMPTY_PASSWORD=1 mroonga bash
-```
 
 # リンク
 
