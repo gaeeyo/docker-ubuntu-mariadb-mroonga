@@ -31,7 +31,7 @@ RUN set -ex; ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 
 RUN set -ex; mkdir /docker-entrypoint-initdb.d; ln -s /usr/share/mroonga/install.sql /docker-entrypoint-initdb.d/00-mroonga-install.sql
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
 
 EXPOSE 3306
 CMD ["mysqld"]
